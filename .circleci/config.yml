@@ -85,4 +85,6 @@ workflows:
       - build-image-push:
           requires:
             - install-build-lint
-      - setup-kubernetes
+      - setup-kubernetes:
+           requires: [install-build-lint,build-image-push]
+
