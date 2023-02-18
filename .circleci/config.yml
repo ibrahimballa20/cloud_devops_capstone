@@ -59,7 +59,7 @@ jobs:
       - run:
           name: Create Kubernetes Infrastructure
           command: |
-            pwd
+            ls -la
             aws cloudformation deploy \
               --template-file .circleci/cloudformation/infrastructure.yml \
               --tags project=${ENVIRONMENT_NAME} \
