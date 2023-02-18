@@ -65,7 +65,7 @@ jobs:
               --tags project=${ENVIRONMENT_NAME} \
               --stack-name "${ENVIRONMENT_NAME}-eks-infrastructure" \
               --region ${AWS_DEFAULT_REGION} \
-              --parameter-overrides file://infrastructure-parameters.yml
+              --parameter-overrides file://infrastructure-parameters.json
       - run:
           name: Create Kubernetes Cluster
           command: |
