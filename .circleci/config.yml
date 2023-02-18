@@ -48,6 +48,36 @@ jobs:
             docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
             docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID:0:7}
             docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID:0:7}
+  setup-kubernetes:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: yum install -y tar gzip
+      - run:
+          name: Create Kubernetes Infrastructure
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/cloudformation/infrastructure.yml \
+              --tags project=${ENVIRONMENT_NAME} \
+              --stack-name "${ENVIRONMENT_NAME}-eks-infrastructure" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://.circleci/cloudformation/infrastructure-parameters.json
+      - run:
+          name: Create Kubernetes Cluster
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/cloudformation/clusters.yml \
+              --tags project=${ENVIRONMENT_NAME} \
+              --stack-name "${ENVIRONMENT_NAME}-eks-cluster" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://.circleci/cloudformation/clusters-parameters.json \
+              --capabilities CAPABILITY_NAMED_IAM
+          no_output_timeout: 15m
+
+
 workflows:
   default:
     jobs:
@@ -55,3 +85,4 @@ workflows:
       - build-image-push:
           requires:
             - install-build-lint
+      - setup-kubernetes
