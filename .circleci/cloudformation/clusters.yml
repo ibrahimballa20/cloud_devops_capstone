@@ -13,7 +13,7 @@ Resources:
       InstanceProfileName: !Sub ${EnvironmentName}-cls-profile
       Path: "/"
       Roles:
-        - !Ref EKSClusterRole
+        - !Ref ClusterRole
 
   ClusterRole:
     Type: AWS::IAM::Role
@@ -57,6 +57,6 @@ Outputs:
 
   RoleArn:
     Description: Role for accessing and creating aws resources
-    Value: !GetAtt EKSClusterRole.Arn
+    Value: !GetAtt ClusterRole.Arn
     Export:
       Name: !Sub ${EnvironmentName}-EKSRole
