@@ -59,22 +59,23 @@ jobs:
       - run:
           name: Create Kubernetes Infrastructure
           command: |
-            ls -la
+            cd .circleci/cloudformation
             aws cloudformation deploy \
-              --template-file .circleci/cloudformation/infrastructure.yml \
+              --template-file infrastructure.yml \
               --tags project=${ENVIRONMENT_NAME} \
               --stack-name "${ENVIRONMENT_NAME}-eks-infrastructure" \
               --region ${AWS_DEFAULT_REGION} \
-              --parameter-overrides file://.circleci/cloudformation/infrastructure-parameters.yml
+              --parameter-overrides file://infrastructure-parameters.yml
       - run:
           name: Create Kubernetes Cluster
           command: |
+            cd .circleci/cloudformation
             aws cloudformation deploy \
-              --template-file .circleci/cloudformation/clusters.yml \
+              --template-file clusters.yml \
               --tags project=${ENVIRONMENT_NAME} \
               --stack-name "${ENVIRONMENT_NAME}-eks-cluster" \
               --region ${AWS_DEFAULT_REGION} \
-              --parameter-overrides file://.circleci/cloudformation/clusters-parameters.json \
+              --parameter-overrides file://clusters-parameters.json \
               --capabilities CAPABILITY_NAMED_IAM
           no_output_timeout: 15m
 
