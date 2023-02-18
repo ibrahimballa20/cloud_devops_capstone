@@ -1,1 +1,57 @@
+version: 2.1
 
+jobs:
+  install-build-lint:
+    docker:
+      - image: cimg/python:3.8.4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            make install
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            chmod +x /bin/hadolint
+      # run lint
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+      - run:
+          name: run lint
+          command: |
+            . venv/bin/activate
+            make lint
+  build-image-push:
+    docker:
+      - image: circleci/golang:1.11.2
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+      - run:
+          name: Build and Tag Docker Image
+          command: |
+            docker build --tag=$DOCKER_IMAGE_NAME .
+            docker image ls
+      - run:
+          name: Upload Docker to Dockerhub
+          command: |
+            echo "Docker ID and Image: $DOCKER_IMAGE_NAME"
+            docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
+            docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID:0:7}
+            docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID:0:7}
+workflows:
+  default:
+    jobs:
+      - install-build-lint
+      - build-image-push:
+          requires:
+            - install-build-lint
