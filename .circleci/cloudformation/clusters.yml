@@ -39,7 +39,7 @@ Resources:
     Properties:
       Version: "1.19"
       Name: !Sub ${EnvironmentName}-cluster
-      RoleArn: !GetAtt EKSClusterRole.Arn
+      RoleArn: !GetAtt ClusterRole.Arn
       ResourcesVpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub ${EnvironmentName}-SCG
