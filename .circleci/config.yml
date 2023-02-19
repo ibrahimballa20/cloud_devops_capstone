@@ -1,5 +1,22 @@
 version: 2.1
 
+commands:
+  destroy-environment:
+    description: Destroy Kubernetes Stack on Fail
+    parameters:
+      envname:
+        default: "udacity-capstone-project"
+        type: string
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+             aws cloudformation delete-stack --stack-name << parameters.envname >>-management
+             aws cloudformation delete-stack --stack-name << parameters.envname >>-nodegroup
+             aws cloudformation delete-stack --stack-name << parameters.envname >>-cluster
+             aws cloudformation delete-stack --stack-name << parameters.envname >>-infrastructure
+
 jobs:
   install-build-lint:
     docker:
@@ -63,7 +80,7 @@ jobs:
             aws cloudformation deploy \
               --template-file infrastructure.yml \
               --tags project=${ENVIRONMENT_NAME} \
-              --stack-name "${ENVIRONMENT_NAME}-eks-infrastructure" \
+              --stack-name "${ENVIRONMENT_NAME}-infrastructure" \
               --region ${AWS_DEFAULT_REGION} \
               --parameter-overrides file://infrastructure-parameters.json
       - run:
@@ -73,13 +90,52 @@ jobs:
             aws cloudformation deploy \
               --template-file clusters.yml \
               --tags project=${ENVIRONMENT_NAME} \
-              --stack-name "${ENVIRONMENT_NAME}-eks-cluster" \
+              --stack-name "${ENVIRONMENT_NAME}-cluster" \
               --region ${AWS_DEFAULT_REGION} \
               --parameter-overrides file://clusters-parameters.json \
               --capabilities CAPABILITY_NAMED_IAM
           no_output_timeout: 15m
+      - run:
+          name: Create NodeGroup
+          command: |
+            cd .circleci/cloudformation
+            aws cloudformation deploy \
+              --template-file nodegroups.yml \
+              --tags project=${ENVIRONMENT_NAME} \
+              --stack-name "${ENVIRONMENT_NAME}-nodegroup" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://nodegroups-parameters.json \
+              --capabilities CAPABILITY_NAMED_IAM
 
-
+      - run:
+          name: Create Management Node
+          command: |
+            cd .circleci/cloudformation
+            aws cloudformation deploy \
+              --template-file managementnode.yml \
+              --tags project=${ENVIRONMENT_NAME} \
+              --stack-name "${ENVIRONMENT_NAME}-management" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://managementnode-parameters.json \
+              --output text >> ~/Deployed.txt
+            cat ~/Deployed.txt
+      - run:
+          name: Retrieve Management Node IP Address for Ansible Playbook Inventory File
+          command: |
+            echo [management] > ~/inventory.txt
+            aws ec2 describe-instances \
+              --region "${AWS_DEFAULT_REGION}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management*" \
+              --output text >> ~/inventory.txt
+            cat ~/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - inventory.txt
+            - Deployed.txt
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
 workflows:
   default:
     jobs:
