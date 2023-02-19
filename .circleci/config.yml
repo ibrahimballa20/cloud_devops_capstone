@@ -1,5 +1,4 @@
 version: 2.1
-
 commands:
   destroy-environment:
     description: Destroy Kubernetes Stack on Fail
@@ -123,27 +122,120 @@ jobs:
           name: Retrieve Management Node IP Address for Ansible Playbook Inventory File
           command: |
             echo [management] > ~/inventory.txt
-            aws ec2 describe-instances \
-              --region "${AWS_DEFAULT_REGION}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management*" \
-              --output text >> ~/inventory.txt
+            MANAGEMENT_PUBLIC_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            echo $MANAGEMENT_PUBLIC_IP >> ~/inventory.txt
             cat ~/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - inventory.txt
             - Deployed.txt
-     # - destroy-environment:
-          #envname: ${ENVIRONMENT_NAME}
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
+  configure-kubernetes-stack:
+    docker:
+      - image: cimg/python:3.11.1-node
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "02:88:fd:60:96:f8:32:13:65:95:87:75:f8:d2:cb:75"
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies to Circle Ci Image
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            pip install ansible
+            sudo apt install -y tar gzip curl
+      - run:
+          name: Configure Management Instance
+          command: |
+            if grep -q "No changes to deploy" ~/Deployed.txt
+              then
+                cat ~/inventory.txt
+                echo "Management Node Up, Running and Configured"
+              else
+                cat ~/inventory.txt
+                cd .circleci/ansible
+                ansible-playbook -i ~/inventory.txt server-config.yml
+              fi
+      - run:
+          name: Configure EKS Cluster
+          command: |
+            if grep -q "No changes to deploy" ~/Deployed.txt
+              then
+                cat ~/inventory.txt
+                echo "Management Node Up, Running and Configured."
+              else
+                cat ~/inventory.txt
+                cd .circleci/ansible
+                ansible-playbook -i ~/inventory.txt cluster-config.yml
+              fi
+      - run:
+          name: ELB Wait for Availability
+          command: |
+            if grep -q "No changes to deploy" ~/Deployed.txt
+              then
+                cat ~/inventory.txt
+                echo "Management Node Up, Running and Configured."
+              else
+                cat ~/inventory.txt
+                echo "Hibernate and Wait"
+                sleep 60
+              fi
+      - run:
+          name: ELB Domain Name
+          command: |
+            cat ~/inventory.txt
+            cd .circleci/ansible
+            ansible-playbook -i ~/inventory.txt cache-dns.yml
+            cat ~/domainname.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - domainname.txt
+  deploy-docker-image:
+    docker:
+      - image:  cimg/python:3.11.1-node
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "02:88:fd:60:96:f8:32:13:65:95:87:75:f8:d2:cb:75"
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies to Circle Ci Image
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            pip install ansible
+            sudo apt install -y tar gzip curl
+      - run:
+          name: Deploy Docker Image
+          command: |
+            cat ~/inventory.txt
+            cd .circleci/ansible
+            ansible-playbook -i ~/inventory.txt deploy-app.yml
+          no_output_timeout: 2m
 workflows:
   default:
     jobs:
-       
-     # - install-build-lint
-     # - build-image-push:
-          #requires:
-          #  - install-build-lint
-       - setup-kubernetes
-           #requires: [install-build-lint,build-image-push]
+      - install-build-lint
+      - build-image-push:
+          requires:
+           - install-build-lint
+      - setup-kubernetes
+      - configure-kubernetes-stack:
+           requires: [setup-kubernetes,build-image-push]
+      - deploy-docker-image:
+           requires:
+             - configure-kubernetes-stack
 

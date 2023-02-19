@@ -1,0 +1,21 @@
+---
+- name: "Download kubectl"
+  shell: curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.23.16/2023-01-30/bin/darwin/amd64/kubectl
+
+  args:
+    chdir: $HOME
+
+- name: "Make Kubectl Executable"
+  shell: chmod +x ./kubectl
+  args:
+    chdir: $HOME
+
+- name: "Add Kubectl to PATH"
+  shell: mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+  args:
+    chdir: $HOME
+
+- name: "Add Kubectl to Bashrc"
+  shell: echo 'export PATH=$PATH:$HOME/bin' >> .bashrc
+  args:
+    chdir: $HOME
