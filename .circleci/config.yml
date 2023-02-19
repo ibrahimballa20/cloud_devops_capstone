@@ -134,8 +134,8 @@ jobs:
           paths:
             - inventory.txt
             - Deployed.txt
-      - destroy-environment:
-          envname: ${ENVIRONMENT_NAME}
+     # - destroy-environment:
+          #envname: ${ENVIRONMENT_NAME}
 workflows:
   default:
     jobs:
