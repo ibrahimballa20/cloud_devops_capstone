@@ -50,7 +50,7 @@ Resources:
     Type: AWS::EKS::Nodegroup
     Properties:
       ClusterName: !Sub ${EnvironmentName}-cluster
-      NodeRole: !GetAtt NodeInstanceRole.Arn
+      NodeRole: !GetAtt NodeRole.Arn
       NodegroupName: !Sub ${EnvironmentName}-nodegroup
       ScalingConfig:
         MinSize: !Ref MinSize
@@ -63,9 +63,9 @@ Resources:
               Fn::Sub: ${EnvironmentName}-PB-NETS
 
 Outputs:
-  NodeInstanceRole:
+  NodeRole:
     Description: Node Role
-    Value: !GetAtt NodeInstanceRole.Arn
+    Value: !GetAtt NodeRole.Arn
     Export:
       Name: !Sub ${EnvironmentName}-IR
   NodeGroup:
