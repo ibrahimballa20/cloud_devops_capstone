@@ -123,7 +123,7 @@ jobs:
           command: |
             echo [management] > ~/inventory.txt
             MANAGEMENT_PUBLIC_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management" \
+            --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-ManagementNode" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
             echo $MANAGEMENT_PUBLIC_IP >> ~/inventory.txt
@@ -200,6 +200,8 @@ jobs:
           root: ~/
           paths:
             - domainname.txt
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
   deploy-docker-image:
     docker:
       - image:  cimg/python:3.11.1-node

@@ -12,8 +12,8 @@
         update_cache: yes
 
   roles:
-    - install-awscli
-    - install-kubectl
+    - awscli
+    - kubectl
 
 - name: "Authenticate AWS CLI with AWS"
   hosts: management
