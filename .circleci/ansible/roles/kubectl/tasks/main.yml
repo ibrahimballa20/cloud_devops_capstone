@@ -4,19 +4,19 @@
 
 
   args:
-    chdir: $HOME
+    chdir: ~/
 
 - name: "Make Kubectl Executable"
   shell: chmod +x ./kubectl
   args:
-    chdir: $HOME
+    chdir: ~/
 
 - name: "Add Kubectl to PATH"
-  shell: mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+  shell: mkdir -p ~/bin && cp ./kubectl ~/bin/kubectl && export PATH=$PATH:~/bin
   args:
-    chdir: $HOME
+    chdir: ~/
 
 - name: "Add Kubectl to Bashrc"
-  shell: echo 'export PATH=$PATH:$HOME/bin' >> .bashrc
+  shell: echo 'export PATH=$PATH:~/bin' >> .bashrc
   args:
-    chdir: $HOME
+    chdir: ~/
