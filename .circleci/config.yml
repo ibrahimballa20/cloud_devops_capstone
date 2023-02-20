@@ -133,8 +133,8 @@ jobs:
           paths:
             - inventory.txt
             - Deployed.txt
-      - destroy-environment:
-          envname: ${ENVIRONMENT_NAME}
+      #- destroy-environment:
+          #envname: ${ENVIRONMENT_NAME}
   configure-kubernetes-stack:
     docker:
       - image: cimg/python:3.11.1-node
@@ -200,8 +200,8 @@ jobs:
           root: ~/
           paths:
             - domainname.txt
-      - destroy-environment:
-          envname: ${ENVIRONMENT_NAME}
+      #- destroy-environment:
+          #envname: ${ENVIRONMENT_NAME}
   deploy-docker-image:
     docker:
       - image:  cimg/python:3.11.1-node
