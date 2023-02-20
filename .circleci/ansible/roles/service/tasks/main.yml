@@ -4,6 +4,6 @@
     dest: ~/
 
 - name: Create Service from Config File
-  command: " ~/bin/kubectl apply -f {{ ENVIRONMENT_NAME }}-service.yaml"
+  command: "kubectl apply -f {{ ENVIRONMENT_NAME }}-service.yaml"
   args:
     chdir:  ~/
