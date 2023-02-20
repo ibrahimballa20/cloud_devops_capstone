@@ -1,5 +1,5 @@
 ---
-- name: "Get ELB Domain Name and Save to File"
+- name: "Retrieve ELB Domain Name and Save to File"
   hosts: management[0]
   user: ubuntu
   gather_facts: false
@@ -7,13 +7,13 @@
   vars:
     ENVIRONMENT_NAME: "{{ lookup('env', 'ENVIRONMENT_NAME') }}"
   tasks:
-    - name: Get the LoadBalancer's DNS name
-      shell: "./bin/kubectl get svc {{ ENVIRONMENT_NAME }}-service"
+    - name: Retrieve DNS name
+      shell: "kubectl get svc {{ ENVIRONMENT_NAME }}-service"
       register: elb_dns
       args:
         chdir: $HOME
 
-    - name: Copy the output to a local file
+    - name: Save to File
       copy:
         content: "{{ elb_dns.stdout }}"
         dest: "~/domainname.txt"

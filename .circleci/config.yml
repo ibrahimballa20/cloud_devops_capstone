@@ -62,8 +62,8 @@ jobs:
           command: |
             echo "Docker ID and Image: $DOCKER_IMAGE_NAME"
             docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
-            docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID:0:7}
-            docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID:0:7}
+            docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID}
+            docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:${CIRCLE_WORKFLOW_ID}
   setup-kubernetes:
     docker:
       - image: amazon/aws-cli
@@ -133,8 +133,8 @@ jobs:
           paths:
             - inventory.txt
             - Deployed.txt
-      #- destroy-environment:
-          #envname: ${ENVIRONMENT_NAME}
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
   configure-kubernetes-stack:
     docker:
       - image: cimg/python:3.11.1-node
@@ -194,14 +194,14 @@ jobs:
           command: |
             cat ~/inventory.txt
             cd .circleci/ansible
-            ansible-playbook -i ~/inventory.txt cache-dns.yml
+            ansible-playbook -i ~/inventory.txt save-dns.yml
             cat ~/domainname.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - domainname.txt
-      #- destroy-environment:
-          #envname: ${ENVIRONMENT_NAME}
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
   deploy-docker-image:
     docker:
       - image:  cimg/python:3.11.1-node
