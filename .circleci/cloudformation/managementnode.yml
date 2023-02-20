@@ -29,7 +29,7 @@ Resources:
   ManagamentNode:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.small
+      InstanceType: t2.micro
       SecurityGroups:
         - Ref: InstanceSecurityGroup
       KeyName: !Ref SSHKeyPair

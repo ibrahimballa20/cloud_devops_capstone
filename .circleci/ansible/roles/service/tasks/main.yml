@@ -1,9 +1,9 @@
 - name: Copy Config File
   copy:
     src: "{{ ENVIRONMENT_NAME }}-service.yaml"
-    dest: $HOME
+    dest: ~/
 
 - name: Create Service from Config File
-  command: "./bin/kubectl apply -f {{ ENVIRONMENT_NAME }}-service.yaml"
+  command: " ~/bin/kubectl apply -f {{ ENVIRONMENT_NAME }}-service.yaml"
   args:
-    chdir: $HOME
+    chdir:  ~/
