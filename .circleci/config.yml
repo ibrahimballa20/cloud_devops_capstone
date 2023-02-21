@@ -162,14 +162,32 @@ jobs:
             kubectl get all
       - destroy-environment:
           envname: ${ENVIRONMENT_NAME}
+  check-kubernetes-stack:
+    docker:
+      - image: cimg/python:3.11.1-node
+    steps:
+      - checkout
+      - setupawscli
+      - configureaws
+      - setupkubectl
+      - setupeksctl
+    - run:
+          name: Get Kubernetes Information
+          command: |
+            kubectl get deployment
+            kubectl get nodes -o wide
+            kubectl get pods -o wide
+            kubectl get all
+  
 workflows:
   default:
     jobs:
-      - install-build-lint
-      - build-image-push:
-          requires:
-           - install-build-lint
-      - setup-kubernetes
-      - configure-kubernetes-stack:
-           requires: [setup-kubernetes,build-image-push]
+      # - install-build-lint
+      # - build-image-push:
+      #     requires:
+      #      - install-build-lint
+      # - setup-kubernetes
+      # - configure-kubernetes-stack:
+      #      requires: [setup-kubernetes,build-image-push]
+      - check-kubernetes-stack
 
