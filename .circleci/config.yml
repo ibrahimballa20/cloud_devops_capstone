@@ -203,8 +203,8 @@ jobs:
           root: ~/
           paths:
             - dns.txt
-      #- destroy-environment:
-          #envname: ${ENVIRONMENT_NAME}
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
   deploy-docker-image:
     docker:
       - image:  cimg/python:3.11.1-node
@@ -229,7 +229,9 @@ jobs:
             cat ~/inventory.txt
             cd .circleci/ansible
             ansible-playbook -i ~/inventory.txt deploy-app.yml
-          no_output_timeout: 2m
+          no_output_timeout: 15m
+      - destroy-environment:
+          envname: ${ENVIRONMENT_NAME}
 workflows:
   default:
     jobs:
