@@ -199,7 +199,6 @@ jobs:
             --query 'LoadBalancers[*].[LoadBalancerName,DNSName,LoadBalancerArn]' \
             --output text >> ~/dns.txt
             cat ~/dns.txt
-            cat ~/domainname.txt
       - persist_to_workspace:
           root: ~/
           paths:
