@@ -98,7 +98,21 @@ jobs:
             docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
             docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME
             docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME
-  #create-stack:  
+  create-kubernetes-stack:
+    docker:
+      - image: cimg/python:3.11.1-node
+    steps:
+      - checkout
+      - setupawscli
+      - configureaws
+      - setupkubectl
+      - setupeksctl
+      - run:
+          name: Create EKS Cluster
+          command: |
+            eksctl create cluster --name $ENVIRONMENT_NAME-cluster --version 1.23 --region $AWS_DEFAULT_REGION --nodegroup-name $ENVIRONMENT_NAME-nodegroup --node-type t2.medium --nodes-min 2 --nodes-max 4 --managed
+
+
   # setup-kubernetes:
   #   docker:
   #     - image: amazon/aws-cli
