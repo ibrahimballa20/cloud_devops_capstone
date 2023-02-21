@@ -8,11 +8,11 @@
     CIRCLE_WORKFLOW_ID: "{{ lookup('env', 'CIRCLE_WORKFLOW_ID') }}"
   tasks:
     - name: Deploy Latest Docker Image
-      shell: "kubectl set image deployment/{{ ENVIRONMENT_NAME }}-deployment {{ ENVIRONMENT_NAME }}-app=ibrahimballa20/{{ ENVIRONMENT_NAME }}"
+      shell: "kubectl set image deployments/{{ ENVIRONMENT_NAME }}-deployment {{ ENVIRONMENT_NAME }}-app=ibrahimballa20/{{ ENVIRONMENT_NAME }}:{{ CIRCLE_WORKFLOW_ID }}"
       args:
         chdir: $HOME
 
     - name: Confirm Deployment is a Success
-      shell: "kubectl rollout status deployment/{{ ENVIRONMENT_NAME }}-deployment"
+      shell: "kubectl rollout status deployments/{{ ENVIRONMENT_NAME }}-deployment"
       args:
         chdir: $HOME
