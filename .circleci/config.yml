@@ -110,8 +110,16 @@ jobs:
       - run:
           name: Create EKS Cluster
           command: |
-            eksctl create cluster --name $ENVIRONMENT_NAME-cluster --version 1.23 --region $AWS_DEFAULT_REGION --nodegroup-name $ENVIRONMENT_NAME-nodegroup --node-type t2.medium --nodes-min 2 --nodes-max 4 --managed
+            aws cloudformation list-exports > stacks.txt
+            if [ $(grep -i "eksctl-udacity-capstone-project-cluster" stacks.txt | wc -l) -ge 1 ]
+              then
+                echo "Kubernetes Cluster Stack Exists Move On to Next Step"
 
+              else
+                eksctl create cluster --name $ENVIRONMENT_NAME --version 1.23 --region $AWS_DEFAULT_REGION --nodegroup-name $ENVIRONMENT_NAME-nodegroup --node-type t2.medium --nodes-min 2 --nodes-max 4 --managed
+
+            fi
+          
 
   # setup-kubernetes:
   #   docker:
@@ -205,5 +213,5 @@ workflows:
        - configure-kubernetes-stack:
             requires: [build-image-push,create-kubernetes-stack]
        - check-kubernetes-stack:
-            requires: [build-image-push,create-kubernetes-stack,configure-kubernetes-stack]
+            requires: [build-image-push,configure-kubernetes-stack]
 
