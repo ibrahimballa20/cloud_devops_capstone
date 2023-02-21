@@ -5,7 +5,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: udacity-capstone-project
+    app: udacity-capstone-project-app
   ports:
     - protocol: TCP
       port: 80
