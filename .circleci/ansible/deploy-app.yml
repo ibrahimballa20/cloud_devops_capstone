@@ -8,7 +8,7 @@
     CIRCLE_WORKFLOW_ID: "{{ lookup('env', 'CIRCLE_WORKFLOW_ID') }}"
   tasks:
     - name: Deploy Latest Docker Image
-      shell: "kubectl set image deployment/{{ ENVIRONMENT_NAME }}-deployment {{ ENVIRONMENT_NAME }}-app=ibrahimballa20/{{ ENVIRONMENT_NAME }}:{{ CIRCLE_WORKFLOW_ID }}"
+      shell: "kubectl set image deployment/{{ ENVIRONMENT_NAME }}-deployment {{ ENVIRONMENT_NAME }}-app=ibrahimballa20/{{ ENVIRONMENT_NAME }}"
       args:
         chdir: $HOME
 
