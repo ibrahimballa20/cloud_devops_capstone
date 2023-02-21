@@ -203,6 +203,7 @@ workflows:
             - install-build-lint
        - create-kubernetes-stack
        - configure-kubernetes-stack:
-            requires: [create-kubernetes-stack,build-image-push]
-       - check-kubernetes-stack
+            requires: [build-image-push,create-kubernetes-stack]
+       - check-kubernetes-stack:
+            requires: [build-image-push,create-kubernetes-stack,configure-kubernetes-stack]
 
