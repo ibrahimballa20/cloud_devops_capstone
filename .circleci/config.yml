@@ -195,13 +195,17 @@ jobs:
             cat ~/inventory.txt
             cd .circleci/ansible
             ansible-playbook -i ~/inventory.txt save-dns.yml
+            aws elbv2 describe-load-balancers \
+            --query 'LoadBalancers[*].[LoadBalancerName,DNSName,LoadBalancerArn]' \
+            --output text >> ~/dns.txt
+            cat ~/dns.txt
             cat ~/domainname.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - domainname.txt
-      - destroy-environment:
-          envname: ${ENVIRONMENT_NAME}
+            - dns.txt
+      #- destroy-environment:
+          #envname: ${ENVIRONMENT_NAME}
   deploy-docker-image:
     docker:
       - image:  cimg/python:3.11.1-node

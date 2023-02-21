@@ -11,9 +11,9 @@
       shell: "kubectl get svc {{ ENVIRONMENT_NAME }}-service"
       register: elb_dns
       args:
-        chdir: $HOME
+        chdir: ~/
 
-    - name: Save to File
+    - name: Save to Local File
       copy:
         content: "{{ elb_dns.stdout }}"
         dest: "~/domainname.txt"
