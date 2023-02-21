@@ -171,7 +171,7 @@ jobs:
       - configureaws
       - setupkubectl
       - setupeksctl
-    - run:
+      - run:
           name: Get Kubernetes Information
           command: |
             kubectl get deployment
