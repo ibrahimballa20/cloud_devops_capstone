@@ -177,7 +177,7 @@ jobs:
           name: Configure EKS Cluster
           command: |
             cd .circleci
-            aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name eksctl-${ENVIRONMENT_NAME}-cluster
+            aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name ${ENVIRONMENT_NAME}
             kubectl apply -f udacity-capstone-project-deployment.yaml -f  udacity-capstone-project-service.yaml
             kubectl get deployment
             kubectl get nodes -o wide
