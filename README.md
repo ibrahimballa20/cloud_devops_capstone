@@ -12,3 +12,5 @@ Circle CI was used to handle the CI CD process which makes use of a rolling depl
  - Building and pushing the docker image to docker hub
  - Creating an EKS Managed Cluster and Node Group
  - Updating the EKS Cluster and Deploying the docker image to it
+
+ Access the Application via http://a194fb1fc3be54147b77ec652d7f39f1-1641687944.us-east-1.elb.amazonaws.com/
