@@ -46,9 +46,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-             aws cloudformation delete-stack --stack-name << parameters.envname >>-nodegroup
-             aws cloudformation delete-stack --stack-name << parameters.envname >>-cluster
-             aws cloudformation delete-stack --stack-name << parameters.envname >>-infrastructure
+             aws cloudformation delete-stack --stack-name eksctl-<< parameters.envname >>-nodegroup
+             aws cloudformation delete-stack --stack-name eksctl-<< parameters.envname >>-cluster
 
 jobs:
   install-build-lint:
@@ -116,54 +115,9 @@ jobs:
                 echo "Kubernetes Cluster Stack Exists Move On to Next Step"
 
               else
-                eksctl create cluster --name $ENVIRONMENT_NAME --version 1.23 --region $AWS_DEFAULT_REGION --nodegroup-name $ENVIRONMENT_NAME-nodegroup --node-type t2.medium --nodes-min 2 --nodes-max 4 --managed
+                eksctl create cluster --name $ENVIRONMENT_NAME --version 1.23 --region $AWS_DEFAULT_REGION --nodegroup-name $ENVIRONMENT_NAME --node-type t2.medium --nodes-min 2 --nodes-max 4 --managed
 
             fi
-          
-
-  # setup-kubernetes:
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies
-  #         command: yum install -y tar gzip
-  #     - run:
-  #         name: Create Kubernetes Infrastructure
-  #         command: |
-  #           cd .circleci/cloudformation
-  #           aws cloudformation deploy \
-  #             --template-file infrastructure.yml \
-  #             --tags project=${ENVIRONMENT_NAME} \
-  #             --stack-name "${ENVIRONMENT_NAME}-infrastructure" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://infrastructure-parameters.json
-  #     - run:
-  #         name: Create Kubernetes Cluster
-  #         command: |
-  #           cd .circleci/cloudformation
-  #           aws cloudformation deploy \
-  #             --template-file clusters.yml \
-  #             --tags project=${ENVIRONMENT_NAME} \
-  #             --stack-name "${ENVIRONMENT_NAME}-cluster" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://clusters-parameters.json \
-  #             --capabilities CAPABILITY_NAMED_IAM
-  #         no_output_timeout: 15m
-  #     - run:
-  #         name: Create NodeGroup
-  #         command: |
-  #           cd .circleci/cloudformation
-  #           aws cloudformation deploy \
-  #             --template-file nodegroups.yml \
-  #             --tags project=${ENVIRONMENT_NAME} \
-  #             --stack-name "${ENVIRONMENT_NAME}-nodegroup" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://nodegroups-parameters.json \
-  #             --capabilities CAPABILITY_NAMED_IAM
-  #     - destroy-environment:
-  #         envname: ${ENVIRONMENT_NAME}
   configure-kubernetes-stack:
     docker:
       - image: cimg/python:3.11.1-node
@@ -179,29 +133,13 @@ jobs:
             cd .circleci
             aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name ${ENVIRONMENT_NAME}
             kubectl apply -f udacity-capstone-project-deployment.yaml -f  udacity-capstone-project-service.yaml
+            sleep 60
             kubectl get deployment
             kubectl get nodes -o wide
             kubectl get pods -o wide
             kubectl get all
       - destroy-environment:
           envname: ${ENVIRONMENT_NAME}
-  check-kubernetes-stack:
-    docker:
-      - image: cimg/python:3.11.1-node
-    steps:
-      - checkout
-      - setupawscli
-      - configureaws
-      - setupkubectl
-      - setupeksctl
-      - run:
-          name: Get Kubernetes Information
-          command: |
-            kubectl get deployment
-            kubectl get nodes -o wide
-            kubectl get pods -o wide
-            kubectl get all
-  
 workflows:
   default:
     jobs:
@@ -212,6 +150,3 @@ workflows:
        - create-kubernetes-stack
        - configure-kubernetes-stack:
             requires: [build-image-push,create-kubernetes-stack]
-       - check-kubernetes-stack:
-            requires: [build-image-push,configure-kubernetes-stack]
-
